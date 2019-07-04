@@ -18,7 +18,7 @@ export interface HOTPGenerateOptions {
   algorithm?: Algorithm;
 }
 
-const hoptDefaultOptions = {
+const hoptGenerateDefaults = {
   encoding: 'ascii' as Encoding,
   algorithm: 'sha1' as Algorithm,
   digits: 6,
@@ -28,11 +28,56 @@ const hoptDefaultOptions = {
  * Generate HMAC based OTP.
  */
 export function hotpGenerate(options: HOTPGenerateOptions): string {
-  const opts = { ...hoptDefaultOptions, ...options };
+  const opts = { ...hoptGenerateDefaults, ...options };
   const hash = hmacHash(opts);
   const code = dynamicTruncate(hash);
 
   return code.toString().substr(-opts.digits);
+}
+
+export interface HOTPVerifyOptions {
+  secret: string;
+  counter: number;
+  // The OTP to verify against
+  code: string;
+  // The look-ahead window for resynchronization (default: 0)
+  window?: number;
+  digits?: number;
+  encoding?: Encoding;
+  algorithm?: Algorithm;
+}
+
+const hotpVerifyDefaults = {
+  ...hoptGenerateDefaults,
+  window: 0,
+};
+
+export interface OTPVerificationResult {
+  valid: boolean;
+  delta?: number;
+}
+
+export function hotpVerify(options: HOTPVerifyOptions): OTPVerificationResult {
+  const opts = { ...hotpVerifyDefaults, ...options };
+
+  for (let c = opts.counter; c <= opts.counter + opts.window; c += 1) {
+    const code = hotpGenerate({
+      ...opts,
+      counter: c,
+    });
+
+    // Convert the given code to string in case it is a number
+    if (code === opts.code.toString()) {
+      return {
+        valid: true,
+        delta: c - opts.counter,
+      };
+    }
+  }
+
+  return {
+    valid: false,
+  };
 }
 
 export interface TOTPGenerateOptions {
@@ -50,7 +95,7 @@ export interface TOTPGenerateOptions {
   algorithm?: Algorithm;
 }
 
-const totpDefaultOptions = {
+const totpGenerateDefaults = {
   step: 30,
   digits: 6,
   encoding: 'ascii' as Encoding,
@@ -61,11 +106,52 @@ const totpDefaultOptions = {
  * Generate Time based OTP.
  */
 export function totpGenerate(options: TOTPGenerateOptions): string {
-  const opts = { ...totpDefaultOptions, ...options };
+  const opts = { ...totpGenerateDefaults, ...options };
   const counter = generateCounterFromTime(opts.time, opts.step);
 
   return hotpGenerate({
     ...opts,
     counter,
   });
+}
+
+export interface TOTPVerifyOptions {
+  secret: string;
+  // The OTP to verify against
+  code: string;
+  // The two-sided leeway window for passcode resynchronization
+  window?: number;
+  time?: number;
+  step?: number;
+  digits?: number;
+  encoding?: Encoding;
+  algorithm?: Algorithm;
+}
+
+const totpVerifyDefaults = {
+  ...totpGenerateDefaults,
+  window: 0,
+};
+
+export function totpVerify(options: TOTPVerifyOptions): OTPVerificationResult {
+  const opts = {
+    ...totpVerifyDefaults,
+    ...options,
+  };
+  let counter = generateCounterFromTime(opts.time, opts.step);
+  // Adjust 2-way window to 1-way
+  counter -= opts.window;
+  const window = opts.window * 2;
+  const result = hotpVerify({
+    ...opts,
+    window,
+    counter,
+  });
+
+  // Reset window adjustments
+  if (result.valid && typeof result.delta === 'number') {
+    result.delta -= opts.window;
+  }
+
+  return result;
 }
