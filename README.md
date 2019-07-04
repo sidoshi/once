@@ -1,4 +1,5 @@
 # Once
+[![Build Status](https://travis-ci.org/sidoshi/once.svg?branch=master)](https://travis-ci.org/sidoshi/once)
 > Utilites for one-time-password generation and other related things.
 
 ## Credits
