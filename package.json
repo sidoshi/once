@@ -9,6 +9,13 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "otp",
+    "2fa",
+    "totp",
+    "hotp",
+    "two factor"
+  ],
   "publishConfig": {
     "access": "public"
   },
