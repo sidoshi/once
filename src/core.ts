@@ -1,3 +1,6 @@
+import base32 from 'hi-base32';
+import { randomstring } from '@sidoshi/random-string';
+
 import { Encoding, Algorithm } from './types';
 import {
   generateCounterFromTime,
@@ -154,4 +157,28 @@ export function totpVerify(options: TOTPVerifyOptions): OTPVerificationResult {
   }
 
   return result;
+}
+
+interface SecretOptions {
+  length?: number;
+}
+
+const defaultSecretOptions = {
+  length: 12,
+};
+
+type SecretResult = {
+  [k in Encoding]: string;
+};
+
+export function generateSecret(options: SecretOptions = {}): SecretResult {
+  const opts = { ...defaultSecretOptions, ...options };
+  const secret = randomstring(opts.length);
+
+  return {
+    ascii: secret,
+    hex: Buffer.from(secret, 'ascii').toString('hex'),
+    base32: base32.encode(Buffer.from(secret, 'ascii')).replace(/=/g, ''),
+    base64: Buffer.from(secret, 'ascii').toString('base64'),
+  };
 }

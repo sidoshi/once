@@ -1,6 +1,7 @@
 {
   "name": "@sidoshi/once",
   "version": "0.1.0",
+  "description": "Utilites for one-time-password generation and other related things.",
   "repository": "sidoshi/once",
   "license": "MIT",
   "main": "dist/index.js",
@@ -60,6 +61,7 @@
     "typescript": "^3.5.2"
   },
   "dependencies": {
+    "@sidoshi/random-string": "^1.0.0",
     "buffer": "^5.2.1",
     "create-hmac": "^1.1.7",
     "hi-base32": "^0.5.0",

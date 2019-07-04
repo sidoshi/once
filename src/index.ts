@@ -10,4 +10,8 @@ export const totp = {
   verify: totpVerify,
 };
 
-export { HOTPGenerateOptions, TOTPGenerateOptions } from './core';
+export {
+  HOTPGenerateOptions,
+  TOTPGenerateOptions,
+  generateSecret,
+} from './core';
