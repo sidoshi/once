@@ -5,7 +5,7 @@ import {
   dynamicTruncate,
 } from './internals';
 
-export interface HOTPOptions {
+export interface HOTPGenerateOptions {
   // The secret key to use for HOTP generation
   secret: string;
   // The incremental counter value
@@ -27,7 +27,7 @@ const hoptDefaultOptions = {
 /**
  * Generate HMAC based OTP.
  */
-export function hotp(options: HOTPOptions): string {
+export function hotpGenerate(options: HOTPGenerateOptions): string {
   const opts = { ...hoptDefaultOptions, ...options };
   const hash = hmacHash(opts);
   const code = dynamicTruncate(hash);
@@ -35,7 +35,7 @@ export function hotp(options: HOTPOptions): string {
   return code.toString().substr(-opts.digits);
 }
 
-export interface TOTPOptions {
+export interface TOTPGenerateOptions {
   // The secret key to use for TOTP generation
   secret: string;
   // The timestamp in seconds to use (default: current time)
@@ -60,11 +60,11 @@ const totpDefaultOptions = {
 /**
  * Generate Time based OTP.
  */
-export function totp(options: TOTPOptions): string {
+export function totpGenerate(options: TOTPGenerateOptions): string {
   const opts = { ...totpDefaultOptions, ...options };
   const counter = generateCounterFromTime(opts.time, opts.step);
 
-  return hotp({
+  return hotpGenerate({
     ...opts,
     counter,
   });

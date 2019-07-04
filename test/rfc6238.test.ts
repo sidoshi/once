@@ -154,7 +154,7 @@ describe('totp', () => {
         digits: 8,
       };
 
-      expect(totp(options)).toEqual(t.code);
+      expect(totp.generate(options)).toEqual(t.code);
     });
   });
 });

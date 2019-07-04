@@ -93,7 +93,7 @@ describe('hotp', () => {
         counter: t.count,
         encoding: 'ascii' as Encoding,
       };
-      expect(hotp(options)).toEqual(t.hotp);
+      expect(hotp.generate(options)).toEqual(t.hotp);
     });
   });
 });
