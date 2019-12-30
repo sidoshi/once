@@ -1,7 +1,8 @@
-import base32 from 'hi-base32';
+import { format } from 'url';
 import { randomstring } from '@sidoshi/random-string';
 
 import { Encoding, Algorithm } from './types';
+import { base32Encode } from './utils';
 import {
   generateCounterFromTime,
   hmacHash,
@@ -188,7 +189,63 @@ export function generateSecret(options: SecretOptions = {}): SecretResult {
   return {
     ascii: secret,
     hex: Buffer.from(secret, 'ascii').toString('hex'),
-    base32: base32.encode(Buffer.from(secret, 'ascii')).replace(/=/g, ''),
+    base32: base32Encode(secret, 'ascii'),
     base64: Buffer.from(secret, 'ascii').toString('base64'),
   };
+}
+
+type OTPAuthUriBaseOptions = {
+  secret: string;
+  encoding: Encoding;
+  accountName: string;
+  issuer: string;
+  algorithm?: Algorithm;
+  digits?: number;
+};
+
+export interface HOTPAuthUriOptions extends OTPAuthUriBaseOptions {
+  type: 'hotp';
+  counter: number;
+}
+
+export interface TOTPAuthUriOptions extends OTPAuthUriBaseOptions {
+  type: 'totp';
+  period?: number;
+}
+
+export type OTPAuthUriOptions = HOTPAuthUriOptions | TOTPAuthUriOptions;
+
+const defaultOTPAuthURIOptions = {
+  algorithm: 'sha1',
+  digits: 6,
+  period: 30,
+};
+
+export function generateOTPAuthUri(options: OTPAuthUriOptions) {
+  const opts = { ...defaultOTPAuthURIOptions, ...options };
+  const base32EncodedSecret = base32Encode(opts.secret, opts.encoding);
+
+  const baseQuery = {
+    secret: base32EncodedSecret,
+    issuer: opts.issuer,
+    algorithm: opts.algorithm,
+    digits: opts.digits,
+  };
+
+  const query =
+    opts.type === 'hotp'
+      ? { ...baseQuery, counter: opts.counter }
+      : { ...baseQuery, period: opts.period };
+
+  const label = `${opts.issuer}:${opts.accountName}`;
+  const pathname = encodeURIComponent(label);
+  const hostname = opts.type;
+
+  return format({
+    protocol: 'otpauth',
+    slashes: true,
+    hostname,
+    pathname,
+    query,
+  });
 }

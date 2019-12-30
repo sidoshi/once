@@ -14,4 +14,5 @@ export {
   HOTPGenerateOptions,
   TOTPGenerateOptions,
   generateSecret,
+  generateOTPAuthUri,
 } from './core';
