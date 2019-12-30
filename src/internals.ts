@@ -22,14 +22,16 @@ export function createEncodedBuffer(str: string, encoding: Encoding): Buffer {
  * Create an 8 byte buffer for the provided counter number.
  */
 export function createCounterBuffer(counter: number): Buffer {
-  const buffer = Buffer.alloc(8);
+  // If the provided number is bigger than 2^SIZE bytes, we cycle back starting from 0
+  const SIZE = 8;
+  const buffer = Buffer.alloc(SIZE);
   let temp = counter;
 
-  for (let i = 7; i >= 0; i -= 1) {
+  for (let i = SIZE - 1; i >= 0; i -= 1) {
     buffer[i] = temp & 0xff;
-    // The binary right shift operator causes problems with large numbers which
-    // are avoided by using this function.
-    // temp = temp >> 8
+    // The binary right shift operator converts the number to a 32 bit number before performing the shift.
+    // So any number greater than 4 bytes would yield unexpected results.
+    // temp = temp >> 8;
     temp = rightShift(temp, 8);
   }
 

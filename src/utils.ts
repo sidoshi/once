@@ -3,7 +3,7 @@
  * We use the arithmetic equivalent of right shift operator to avoid any
  * problems.
  *
- * See https://stackoverflow.com/questions/56866365
+ * See https://stackoverflow.com/a/56867491
  */
 export function rightShift(digit: number, n: number) {
   return Math.floor(digit / 2 ** n);
