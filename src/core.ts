@@ -39,14 +39,19 @@ export function hotpGenerate(options: HOTPGenerateOptions): string {
 }
 
 export interface HOTPVerifyOptions {
+  // The secret key to use for HOTP verification
   secret: string;
+  // The incremental counter value
   counter: number;
   // The OTP to verify against
   code: string;
   // The look-ahead window for resynchronization (default: 0)
   window?: number;
+  // The length of generated OTP (default: 6)
   digits?: number;
+  // The encoding in which the secret key is provided (default: 'ascii')
   encoding?: Encoding;
+  // The algorithm to use for HMAC hashing (default: 'sha1')
   algorithm?: Algorithm;
 }
 
@@ -70,7 +75,7 @@ export function hotpVerify(options: HOTPVerifyOptions): OTPVerificationResult {
     });
 
     // Convert the given code to string in case it is a number
-    if (code === opts.code.toString()) {
+    if (code === opts.code) {
       return {
         valid: true,
         delta: c - opts.counter,
@@ -119,15 +124,21 @@ export function totpGenerate(options: TOTPGenerateOptions): string {
 }
 
 export interface TOTPVerifyOptions {
+  // The secret key to use for TOTP verification
   secret: string;
   // The OTP to verify against
   code: string;
   // The two-sided leeway window for passcode resynchronization
   window?: number;
+  // The timestamp in seconds to use (default: current time)
   time?: number;
+  // Number of steps in seconds for incrementing counter (default: 30)
   step?: number;
+  // The length of generated OTP (default: 6)
   digits?: number;
+  // The encoding in which the secret key is provided (default: 'ascii')
   encoding?: Encoding;
+  // The algorithm to use for HMAC hashing (default: 'sha1')
   algorithm?: Algorithm;
 }
 
@@ -137,14 +148,13 @@ const totpVerifyDefaults = {
 };
 
 export function totpVerify(options: TOTPVerifyOptions): OTPVerificationResult {
-  const opts = {
-    ...totpVerifyDefaults,
-    ...options,
-  };
+  const opts = { ...totpVerifyDefaults, ...options };
   let counter = generateCounterFromTime(opts.time, opts.step);
+
   // Adjust 2-way window to 1-way
   counter -= opts.window;
   const window = opts.window * 2;
+
   const result = hotpVerify({
     ...opts,
     window,
